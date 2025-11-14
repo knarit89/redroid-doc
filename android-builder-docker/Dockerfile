@@ -24,15 +24,18 @@ RUN apt-get update \
     && apt-get install -y python2 python-mako python-is-python2 python-enum34 gettext
 
 
-RUN groupadd -g $groupid $username \
-    && useradd -m -u $userid -g $groupid $username \
-    && echo "$username ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
-    && echo $username >/root/username \
-    && echo "$username:$username" | chpasswd && adduser $username sudo
+RUN if [ "$userid" = "0" ]; then \
+        echo "root" >/root/username; \
+    else \
+        groupadd -g $groupid $username \
+        && useradd -m -u $userid -g $groupid $username \
+        && echo "$username ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
+        && echo $username >/root/username \
+        && echo "$username:$username" | chpasswd && adduser $username sudo; \
+    fi
 
 
-ENV HOME=/home/$username \
-    USER=$username \
+ENV USER=$username \
     PATH=/src/.repo/repo:/src/prebuilts/jdk/jdk8/linux-x86/bin/:$PATH
 
 
